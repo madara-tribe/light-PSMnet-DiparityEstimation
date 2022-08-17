@@ -1,0 +1,16 @@
+numpy
+matplotlib
+scipy
+scikit-image
+ipython
+opencv-python
+torchinfo
+tqdm
+easydict 
+tensorboardX
+scikit-learn
+tensorboard
+protobuf==3.19 
+onnxconverter-common==1.6.0
+onnx==1.6.0
+onnxruntime
