@@ -15,8 +15,8 @@ from torchvision import transforms, datasets
 import networks
 from layers import disp_to_depth
 from utils.utils import download_model_if_doesnt_exist
-from evaluate_depth import STEREO_SCALE_FACTOR
 
+STEREO_SCALE_FACTOR = 5.4
 
 #def parse_args():
    # parser = argparse.ArgumentParser(
@@ -38,9 +38,19 @@ from evaluate_depth import STEREO_SCALE_FACTOR
                             #"mono+stereo_1024x320"])
     #parser.add_argument('--ext', type=str,
       #                  help='image extension to search for in folder', default="jpg")
-    #parser.add_argument("--no_cuda",
-    #                    help='if set, disables CUDA',
-    #                    action='store_true')
+    #parser.add_argument("--num_layers",
+     #                           type=int,
+      #                          help="number of resnet layers",
+       #                         default=18,
+        #                        choices=[18, 34, 50, 101, 152])
+    #parser.add_argument("--min_depth",
+     #                           type=float,
+      #                          help="minimum depth",
+       #                         default=0.1)
+    #parser.add_argument("--max_depth",
+     #                           type=float,
+      #                          help="maximum depth",
+       #                         default=100.0)
     #parser.add_argument("--pred_metric_depth",
     #                    help='if set, predicts metric depth instead of disparity. (This only '
     #                         'makes sense for stereo-trained KITTI models).',
@@ -76,8 +86,6 @@ def test_depth():
     feed_width = loaded_dict_enc['width']
     filtered_dict_enc = {k: v for k, v in loaded_dict_enc.items() if k in encoder.state_dict()}
     encoder.load_state_dict(filtered_dict_enc)
-    encoder.to(device)
-    encoder.eval()
 
     print("Loading pretrained decoder")
     depth_decoder = networks.DepthDecoder(
@@ -86,8 +94,6 @@ def test_depth():
     loaded_dict = torch.load(depth_decoder_path, map_location=device)
     depth_decoder.load_state_dict(loaded_dict)
 
-    depth_decoder.to(device)
-    depth_decoder.eval()
     return encoder, depth_decoder
     """
     # FINDING INPUT IMAGES

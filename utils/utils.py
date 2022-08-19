@@ -1,22 +1,23 @@
-# Copyright Niantic 2019. Patent Pending. All rights reserved.
-#
-# This software is licensed under the terms of the Monodepth2 licence
-# which allows for non-commercial use only, the full terms of which are made
-# available in the LICENSE file.
-
-from __future__ import absolute_import, division, print_function
 import os
-import hashlib
-import zipfile
-from six.moves import urllib
 
+def save_depth(direction, idx, disp_resized, inp, output_directory="depth"):
+    import PIL.Image as pil
+    import matplotlib as mpl
+    import matplotlib.cm as cm
+    disp_resized_np = disp_resized[0].squeeze().cpu().detach().numpy().copy()
+    vmax = np.percentile(disp_resized_np, 95)
+    normalizer = mpl.colors.Normalize(vmin=disp_resized_np.min(), vmax=vmax)
+    mapper = cm.ScalarMappable(norm=normalizer, cmap='magma')
+    colormapped_im = (mapper.to_rgba(disp_resized_np)[:, :, :3] * 255).astype(np.uint8)
+    im = pil.fromarray(colormapped_im)
 
-def readlines(filename):
-    """Read all the lines in a text file and return as a list
-    """
-    with open(filename, 'r') as f:
-        lines = f.read().splitlines()
-    return lines
+    name_dest_im = os.path.join(output_directory, "{}_{}_disp.jpeg".format(direction, idx))
+    im.save(name_dest_im)
+
+    pred_meta = inp[0].detach().cpu().numpy()
+    pred_meta = (pred_meta * 255).transpose(1, 2, 0).astype(np.float32)
+    name_inp_im = os.path.join(output_directory, "{}_{}_inp.jpeg".format(direction, idx))
+    cv2.imwrite(name_inp_im, pred_meta)
 
 
 def normalize_image(x):
@@ -28,16 +29,6 @@ def normalize_image(x):
     return (x - mi) / d
 
 
-def sec_to_hm(t):
-    """Convert time in seconds to time in hours, minutes and seconds
-    e.g. 10239 -> (2, 50, 39)
-    """
-    t = int(t)
-    s = t % 60
-    t //= 60
-    m = t % 60
-    t //= 60
-    return t, m, s
 
 
 def sec_to_hm_str(t):

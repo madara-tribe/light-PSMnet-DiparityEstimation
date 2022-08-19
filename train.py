@@ -1,15 +1,10 @@
-from __future__ import absolute_import, division, print_function
-
+import os
 from trainer import Trainer
-from options import MonodepthOptions
 from cfg import Cfg
-
-options = MonodepthOptions()
-opts = options.parse()
-cfg = Cfg
+import torch
 
 if __name__ == "__main__":
-    trainer = Trainer(opts, cfg)
+    device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
+    cfg = Cfg
+    trainer = Trainer(cfg, device)
     trainer.train()
-
-
