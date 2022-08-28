@@ -1,7 +1,7 @@
 # /bin/sh
 mkdir bp
-mkdir bp/Docker bp/GCNet bp/utils
+mkdir bp/Docker bp/psmnet bp/utils
 cp *.py *.sh bp/
 cp Docker/* bp/Docker/
-cp GCNet/*.py bp/GCNet/
+cp psmnet/*.py bp/psmnet/
 cp utils/*.py bp/utils/

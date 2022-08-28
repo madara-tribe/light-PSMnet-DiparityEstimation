@@ -2,32 +2,28 @@ import os
 import numpy as np
 import cv2
 
-def save_depth(direction, idx, disp_resized, target, inp, output_directory="depth"):
-    os.makedirs(output_directory, exist_ok=True)
-    import PIL.Image as pil
-    import matplotlib as mpl
-    import matplotlib.cm as cm
-    disp_resized_np = disp_resized[0].cpu().detach().numpy().copy()
-    vmax = np.percentile(disp_resized_np, 95)
-    normalizer = mpl.colors.Normalize(vmin=disp_resized_np.min(), vmax=vmax)
-    mapper = cm.ScalarMappable(norm=normalizer, cmap='magma')
-    colormapped_im = (mapper.to_rgba(disp_resized_np)[:, :, :3] * 255).astype(np.uint8)
-    im = pil.fromarray(colormapped_im)
-    disp = np.array(im, dtype=np.uint8)
+import PIL.Image as pil
+import matplotlib as mpl
+import matplotlib.cm as cm
 
-    targets = target[0].cpu().detach().numpy().copy()
-    vmax = np.percentile(targets, 95)
-    normalizer = mpl.colors.Normalize(vmin=targets.min(), vmax=vmax)
+def disp2np(x):
+    vmax = np.percentile(x, 95)
+    normalizer = mpl.colors.Normalize(vmin=x.min(), vmax=vmax)
     mapper = cm.ScalarMappable(norm=normalizer, cmap='magma')
-    colormapped_tr = (mapper.to_rgba(targets)[:, :, :3] * 255).astype(np.uint8)
+    colormapped_tr = (mapper.to_rgba(x)[:, :, :3] * 255).astype(np.uint8)
     tr = pil.fromarray(colormapped_tr)
-    tr_disp = np.array(tr, dtype=np.uint8)
-    #name_dest_im = os.path.join(output_directory, "{}_{}_disp.jpeg".format(direction, idx))
-    #im.save(name_dest_im)
+    return np.array(tr, dtype=np.uint8)
 
-    pred_meta = inp[0].detach().cpu().numpy()
-    pred_meta = (pred_meta * 255).transpose(1, 2, 0).astype(np.float32)
-    cimg = np.hstack([disp, tr_disp, pred_meta])
+def save_depth(direction, idx, disp_resized, target, inp, output_directory="depth"):
+    #print("disp_resized, target, inp", disp_resized.shape, target.shape, inp.shape)
+    os.makedirs(output_directory, exist_ok=True)
+    disp_resized_np = disp_resized[0].cpu().detach().numpy().copy()
+    disp = disp2np(disp_resized_np)
+    targets = target[0].cpu().detach().numpy().copy()
+    tr_disp = disp2np(targets)
+    pred = inp[0].cpu().detach().numpy().copy()
+    pred = (pred * 255).transpose(1, 2, 0).astype(np.float32)
+    cimg = np.hstack([disp, tr_disp, pred])
     name_inp_im = os.path.join(output_directory, "{}_{}_inp.jpeg".format(direction, idx))
     cv2.imwrite(name_inp_im, cimg)
 
