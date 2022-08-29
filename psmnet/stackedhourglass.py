@@ -87,10 +87,9 @@ class Hourglass(nn.Module):
             Conv3dBn(in_channels=32, out_channels=64, kernel_size=3, stride=2, padding=1, dilation=1, use_relu=True),
             Conv3dBn(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1, dilation=1, use_relu=False)
         )
-        self.net2 = nn.Sequential(
-            Conv3dBn(in_channels=64, out_channels=64, kernel_size=3, stride=2, padding=1, dilation=1, use_relu=True),
-            Conv3dBn(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=1, dilation=1, use_relu=True)
-        )
+        self.net2 = nn.Sequential(nn.MaxPool3d(kernel_size=2),
+                                  nn.BatchNorm3d(num_features=64),
+                                  nn.SiLU(inplace=True))
         self.net3 = nn.Sequential(
             nn.ConvTranspose3d(in_channels=64, out_channels=64, kernel_size=3, stride=2, padding=1, output_padding=1, bias=False),
             nn.BatchNorm3d(num_features=64)

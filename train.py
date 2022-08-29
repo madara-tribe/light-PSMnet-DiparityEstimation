@@ -4,6 +4,7 @@ import numpy as np
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
 import torchvision.transforms as T
 from torchsummary import summary
@@ -11,6 +12,7 @@ from torch.utils.data import DataLoader
 from psmnet.PSMnetPlus import PSMNetPlus
 #from models.PSMnet import PSMNet as GCNetPlus
 from psmnet.smoothloss import SmoothL1Loss, SSIM
+from psmnet.ssim import SSIM
 from utils.disp_dataloader import DispDataLoder, RandomCrop, ToTensor, Normalize, Pad
 from utils.utils import save_depth 
 from cfg import Cfg
@@ -47,6 +49,7 @@ def main():
         model = nn.DataParallel(model, device_ids=device_ids)
     summary(model, [(3, cfg.H, cfg.W), (3, cfg.H, cfg.W)])
     criterion = SmoothL1Loss().to(device)
+    #ssim = SSIM().to(device)
     optimizer = optim.Adam(model.parameters(), lr=cfg.lr)
 
     if model_path is not None:
@@ -142,8 +145,8 @@ def train(model, train_loader, optimizer, criterion, step, epoch):
             save_depth("L", step, disp3, target_disp, left_img)
             save_depth("R", step, disp3, target_disp, right_img)
         loss1, loss2, loss3 = criterion(disp1[mask], disp2[mask], disp3[mask], target_disp[mask])
-        #reprojection_loss = compute_reprojection_loss(disp1, disp2, disp3, target_disp)
-        total_loss = 0.5 * loss1 + 0.7 * loss2 + 1.0 * loss3 #+ reprojection_loss
+        #reprojection_loss = compute_reprojection_loss(step, disp1, disp2, disp3, target_disp)
+        total_loss = 0.5 * loss1 + 0.7 * loss2 + 1.0 * loss3 # reprojection_loss
 
         total_loss.backward()
         optimizer.step()
@@ -154,9 +157,9 @@ def train(model, train_loader, optimizer, criterion, step, epoch):
             writer.add_scalar('loss/loss1', loss1, step)
             writer.add_scalar('loss/loss2', loss2, step)
             writer.add_scalar('loss/loss3', loss3, step)
-           # writer.add_scalar('loss/reprojection_loss', reprojection_loss, step)
+            #writer.add_scalar('loss/reprojection_loss', reprojection_loss, step)
             writer.add_scalar('loss/total_loss', total_loss, step)
-            print('step/Epochs: {:05}/{:05} | total loss: {:.5} | loss1: {:.5} | loss2: {:.5} | loss3: {:.5}'.format(step, epoch, total_loss.item(), loss1.item(), loss2.item(), loss3.item()))
+            print('step/Epochs: {:05}/{:05} | total loss: {:.5} | loss1: {:.5} | loss2: {:.5} | loss3: {:.5}, reprojection_loss: {:.5}'.format(step, epoch, total_loss.item(), loss1.item(), loss2.item(), loss3.item(), 0.0))
 
     return step
 
@@ -191,14 +194,25 @@ def save(model, optimizer, epoch, step, error, best_error):
 
     return best_error
 
-def compute_reprojection_loss(disp1, disp2, disp3, target_disp):
-    target_disp = target_disp.unsqueeze(1)
-    reprojection_loss1 = SSIM(disp1.unsqueeze(1), target_disp)
-    reprojection_loss2 = SSIM(disp2.unsqueeze(1), target_disp)
-    reprojection_loss3 = SSIM(disp3.unsqueeze(1), target_disp)
-    reprojection_loss = reprojection_loss1 + reprojection_loss2 + reprojection_loss3
+def compute_reprojection_loss(step, disp1, disp2, disp3, target_disp):
+    target = target_disp #.unsqueeze(1)
+    disp1_ = disp1#.unsqueeze(1)
+    disp2_ = disp2#.unsqueeze(1)
+    disp3_ = disp3#.unsqueeze(1)
+    ssim_loss1 = SSIM(target, target)#.mean(1, True)
+    ssim_loss2 = SSIM(target, target)#.mean(1, True)
+    ssim_loss3 = SSIM(target, target)#.mean(1, True)
+    
+    l1_loss1 = F.l1_loss(disp1_, target)#.mean()
+    l1_loss2 = F.l1_loss(disp2_, target)#.mean(1, True)
+    l1_loss3 = F.l1_loss(disp3_, target)#.mean(1, True)
+    repro_loss1 = ssim_loss1.mean() + l1_loss1.mean()
+    repro_loss2 = ssim_loss2.mean() + l1_loss2.mean()
+    repro_loss3 = ssim_loss3.mean() + l1_loss3.mean()
+#    print('step {:05} l1loss1 {:.5} | l1loss2: {:.5} | l1loss3: {:.5} | rep1: {:.5} | rep2: {:.5}, rep3: {:.5}'.format(step, l1_loss1, l1_loss2, l1_loss3, repro_loss1.item(), repro_loss2.item(), repro_loss3.item()))
+    reprojection_loss = 0.5 * repro_loss1 + 0.7 * repro_loss2 + 1.0 * repro_loss3
     return reprojection_loss
-
+ 
 if __name__ == '__main__':
     main()
     writer.close()
