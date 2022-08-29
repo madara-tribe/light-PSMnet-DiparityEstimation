@@ -11,8 +11,8 @@ Cfg.W = 512
 Cfg.lr = 0.001
 Cfg.num_epochs = 300
 Cfg.gpu_id = '1'
-Cfg.use_ssim = True
-Cfg.num_workers = 4
+Cfg.use_ssim = False
+Cfg.num_workers = 1
 Cfg.maxdisp = 192
 ## dataset
 Cfg.right_dir = "data/train/Right/*.jpg"
