@@ -14,4 +14,4 @@
 
 
 # References
--[A Large-Scale Dataset for Stereo Matching in Autonomous Driving Scenarios](https://drivingstereo-dataset.github.io)
+- [A Large-Scale Dataset for Stereo Matching in Autonomous Driving Scenarios](https://drivingstereo-dataset.github.io)
