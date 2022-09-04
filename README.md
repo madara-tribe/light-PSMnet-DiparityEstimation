@@ -11,7 +11,9 @@ input right and left image and out put disparity
 # model 
 
 
-PsmNet more light than ordinaly. With SelfAttetion Laayer conv2d are far less than ordinally. and its accuracy is also goot.
+PsmNet become more light than ordinaly With SelfAttetion Layer.
+
+Eith SelfAttetion Layer, conv2d are far less than ordinally and its accuracy is also goot.
 
 
 <img src="https://user-images.githubusercontent.com/48679574/188292813-fa872d88-f893-472c-995d-1b790a87bcf2.png" width="700px">
