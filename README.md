@@ -4,8 +4,7 @@ calcurate disparity with custmized PsmNet more light than ordinaly.
 input right and left image and out put disparity 
 
 
-![psmnet](https://user-images.githubusercontent.com/48679574/188292724-648deeff-8c8f-46a7-8d1b-70c60f1e158c.jpeg)
-
+<img src="https://user-images.githubusercontent.com/48679574/188292724-648deeff-8c8f-46a7-8d1b-70c60f1e158c.jpeg" width="400px">
 
 # model 
 
@@ -13,7 +12,8 @@ input right and left image and out put disparity
 PsmNet more light than ordinaly. With SelfAttetion Laayer conv2d are far less than ordinally. and its accuracy is also goot.
 
 
-![SelfAttention](https://user-images.githubusercontent.com/48679574/188292692-6a3f164c-6691-4847-b98e-f3fe38d75d89.png)
+<img src="https://user-images.githubusercontent.com/48679574/188292692-6a3f164c-6691-4847-b98e-f3fe38d75d89.png" width="400px">
+
 
 
 | Model | CNN Arch | model param |
