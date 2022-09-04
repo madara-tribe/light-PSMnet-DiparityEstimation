@@ -1,10 +1,20 @@
-# GC-Net
+# Stereo Matching disparity estimation with custimized PsmNet
+
+calcurate disparity with custmized PsmNet more light than ordinaly.
+input right and left image and out put disparity 
 
 
+![psmnet](https://user-images.githubusercontent.com/48679574/188292724-648deeff-8c8f-46a7-8d1b-70c60f1e158c.jpeg)
 
 
+# model 
 
-# Performance
+
+PsmNet more light than ordinaly. With SelfAttetion Laayer conv2d are far less than ordinally. and its accuracy is also goot.
+
+
+![SelfAttention](https://user-images.githubusercontent.com/48679574/188292692-6a3f164c-6691-4847-b98e-f3fe38d75d89.png)
+
 
 | Model | CNN Arch | model param |
 | :---         |     :---:      |        ---: |
@@ -13,5 +23,12 @@
 
 
 
+
+# Performance
+
+
+
+
 # References
 - [A Large-Scale Dataset for Stereo Matching in Autonomous Driving Scenarios](https://drivingstereo-dataset.github.io)
+- [PSMNet](https://github.com/KinglittleQ/PSMNet)
