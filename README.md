@@ -35,5 +35,6 @@ Eith SelfAttetion Layer, conv2d are far less than ordinally and its accuracy is 
 
 # References
 - [A Large-Scale Dataset for Stereo Matching in Autonomous Driving Scenarios](https://drivingstereo-dataset.github.io)
-- [PSMNet](https://github.com/KinglittleQ/PSMNet)
+- [Self-Attention Generative Adversarial Networks](https://arxiv.org/abs/1805.08318)
+- [Pyramid Stereo Matching Network](https://arxiv.org/pdf/1803.08669.pdf)
 
