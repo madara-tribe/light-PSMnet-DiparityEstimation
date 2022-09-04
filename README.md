@@ -32,11 +32,11 @@ Eith SelfAttetion Layer, conv2d are far less than ordinally and its accuracy is 
 
 # Performance
 
-<img src="https://user-images.githubusercontent.com/48679574/188294584-10c6d3cd-e345-4544-ae4d-b0b2438aa43c.jpeg" width="700px">
+<img src="https://user-images.githubusercontent.com/48679574/188294584-10c6d3cd-e345-4544-ae4d-b0b2438aa43c.jpeg" width="800px">
 
-<img src="https://user-images.githubusercontent.com/48679574/188294587-6dd4f599-40ad-48c4-8e2d-558d7030b773.jpeg" width="700px">
+<img src="https://user-images.githubusercontent.com/48679574/188294587-6dd4f599-40ad-48c4-8e2d-558d7030b773.jpeg" width="800px">
 
-<img src="https://user-images.githubusercontent.com/48679574/188294588-3814fb7f-2e01-48e3-9b08-740fb559f107.png" width="700px">
+<img src="https://user-images.githubusercontent.com/48679574/188294588-3814fb7f-2e01-48e3-9b08-740fb559f107.png" width="400px">
 
 
 
