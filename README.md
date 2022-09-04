@@ -1,7 +1,9 @@
 # Stereo Matching disparity estimation with custimized PsmNet
 
 calcurate disparity with custmized PsmNet more light than ordinaly.
-input right and left image and out put disparity 
+
+input right and left image and output disparity 
+
 
 
 
