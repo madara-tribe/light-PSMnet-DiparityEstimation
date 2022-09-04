@@ -1,24 +1,23 @@
 import argparse
+import os 
 import cv2
-
+import numpy as np
 import torch
 import torch.nn as nn
 import torchvision.transforms as T
-from models.PSMnet import PSMNet
-from dataloader.KITTI2015_loader import ToTensor, Normalize
+from psmnet.PSMnetPlus import PSMNetPlus
+from utils.disp_dataloader import ToTensor, Normalize
 import torch.nn.functional as F
-
+from utils.utils import disp2np
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
-
+#python3 inference.py --right pic/test_right.png --left pic/test_left.png
 
 parser = argparse.ArgumentParser(description='PSMNet inference')
 parser.add_argument('--maxdisp', type=int, default=192, help='max diparity')
 parser.add_argument('--left', default=None, help='path to the left image')
 parser.add_argument('--right', default=None, help='path to the right image')
-parser.add_argument('--model-path', default=None, help='path to the model')
-parser.add_argument('--save-path', default=None, help='path to save the disp image')
 args = parser.parse_args()
 
 
@@ -28,22 +27,24 @@ device_ids = [0, 1, 2, 3]
 device = torch.device('cuda:{}'.format(device_ids[0]))
 
 
-def main():
+def main(model_path):
     left = cv2.imread(args.left)
     right = cv2.imread(args.right)
-
+    left = cv2.resize(left, (1024, 256))
+    right = cv2.resize(right, (1024, 256))
+    
     pairs = {'left': left, 'right': right}
 
-    transform = T.Compose([Normalize(mean, std), ToTensor(), Pad(384, 1248)])
+    transform = T.Compose([Normalize(mean, std), ToTensor()]) #Pad(192, 640)])
     pairs = transform(pairs)
     left = pairs['left'].to(device).unsqueeze(0)
     right = pairs['right'].to(device).unsqueeze(0)
-
-    model = PSMNet(args.maxdisp).to(device)
+    print(left.shape, right.shape)
+    model = PSMNetPlus(args.maxdisp).to(device)
     if len(device_ids) > 1:
         model = nn.DataParallel(model, device_ids=device_ids)
 
-    state = torch.load(args.model_path)
+    state = torch.load(model_path)
     if len(device_ids) == 1:
         from collections import OrderedDict
         new_state_dict = OrderedDict()
@@ -53,7 +54,7 @@ def main():
         state['state_dict'] = new_state_dict
 
     model.load_state_dict(state['state_dict'])
-    print('load model from {}'.format(args.model_path))
+    print('load model from {}'.format(model_path))
     print('epoch: {}'.format(state['epoch']))
     print('3px-error: {}%'.format(state['error']))
 
@@ -63,13 +64,9 @@ def main():
         _, _, disp = model(left, right)
 
     disp = disp.squeeze(0).detach().cpu().numpy()
-    plt.figure(figsize=(12.84, 3.84))
-    plt.axis('off')
-    plt.imshow(disp)
-    plt.colorbar()
-    plt.savefig(args.save_path, dpi=100)
-
-    print('save diparity map in {}'.format(args.save_path))
+    disp = disp2np(disp) 
+    print("disp", disp.shape, left.shape, right.shape)
+    cv2.imwrite("pic/test_disp.png", disp.astype(np.uint8))
 
 
 class Pad():
@@ -96,4 +93,5 @@ class Pad():
 
 
 if __name__ == '__main__':
-    main()
+    model_path = os.path.join("checkpoint", "best_model.ckpt")
+    main(model_path)

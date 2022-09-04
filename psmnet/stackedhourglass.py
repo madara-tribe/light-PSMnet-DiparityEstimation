@@ -52,9 +52,9 @@ class StackedHourglass(nn.Module):
         out2 = self.out2(hourglass2_out4) + out1
         out3 = self.out3(hourglass3_out4) + out2
 
-        cost1 = F.upsample(out1, size=out_size, mode='trilinear').squeeze(dim=1)  # [B, D, H, W]
-        cost2 = F.upsample(out2, size=out_size, mode='trilinear').squeeze(dim=1)  # [B, D, H, W]
-        cost3 = F.upsample(out3, size=out_size, mode='trilinear').squeeze(dim=1)  # [B, D, H, W]
+        cost1 = F.interpolate(out1, size=out_size, mode='trilinear', align_corners=True).squeeze(dim=1)  # [B, D, H, W]
+        cost2 = F.interpolate(out2, size=out_size, mode='trilinear', align_corners=True).squeeze(dim=1)  # [B, D, H, W]
+        cost3 = F.interpolate(out3, size=out_size, mode='trilinear', align_corners=True).squeeze(dim=1)  # [B, D, H, W]
 
         disp1 = self.regression(cost1) # [B, D, H, W]
         disp2 = self.regression(cost2)

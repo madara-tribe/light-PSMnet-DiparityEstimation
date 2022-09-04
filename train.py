@@ -1,7 +1,7 @@
 import os
 import shutil
 import numpy as np
-
+from tqdm import tqdm 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -13,9 +13,11 @@ from psmnet.PSMnetPlus import PSMNetPlus
 from psmnet.smoothloss import SmoothL1Loss
 from psmnet.ssim import SSIM, compute_reprojection_loss
 from utils.disp_dataloader import DispDataLoder, RandomCrop, ToTensor, Normalize, Pad
-from utils.utils import save_depth 
+from utils.utils import save_depth, disp2np 
 from cfg import Cfg
 import tensorboardX as tX
+import cv2
+
 
 # imagenet
 mean = [0.406, 0.456, 0.485]
@@ -40,11 +42,11 @@ def main():
     train_dataset = DispDataLoder(cfg, mode="train", transform=train_transform)
     train_loader = DataLoader(train_dataset, batch_size=cfg.batch_size, shuffle=True, num_workers=cfg.num_workers)
 
-    validate_transform = T.Compose([Normalize(mean, std), ToTensor(), Pad(384, 1248)])
+    validate_transform = T.Compose([Normalize(mean, std), ToTensor()])
     validate_dataset = DispDataLoder(cfg, mode="val", transform=validate_transform)
     validate_loader = DataLoader(validate_dataset, batch_size=cfg.validate_batch_size, num_workers=cfg.num_workers)
 
-    step = 0
+    step = global_step = 0
     best_error = 100.0
 
     model = PSMNetPlus(cfg.maxdisp).to(device)
@@ -72,10 +74,10 @@ def main():
         step = train(model, train_loader, optimizer, criterion, step, epoch, ssim)
         adjust_lr(optimizer, epoch)
 
-        if epoch % cfg.epoch_save_frequency == 0:
-            model.eval()
-            error = validate(model, validate_loader, epoch)
-            best_error = save(model, optimizer, epoch, step, error, best_error)
+        #if  % cfg.validate_frequency == 0:
+        model.eval()
+        error = validate(model, validate_loader, epoch)
+        best_error = save(model, optimizer, epoch, step, error, best_error)
 
 def validate(model, validate_loader, epoch):
     '''
@@ -85,7 +87,7 @@ def validate(model, validate_loader, epoch):
     idx = np.random.randint(num_batches)
 
     avg_error = 0.0
-    for i, batch in enumerate(validate_loader):
+    for i, batch in enumerate(tqdm(validate_loader)):
         left_img = batch['left'].to(device)
         right_img = batch['right'].to(device)
         target_disp = batch['disp'].to(device)
@@ -95,9 +97,8 @@ def validate(model, validate_loader, epoch):
 
         with torch.no_grad():
             _, _, disp = model(left_img, right_img)
-
         delta = torch.abs(disp[mask] - target_disp[mask])
-        error_mat = (((delta >= 3.0) + (delta >= 0.05 * (target_disp[mask]))) == 2)
+        error_mat = delta >= 3.0
         error = torch.sum(error_mat).item() / torch.numel(disp[mask]) * 100
 
         avg_error += error
@@ -119,17 +120,12 @@ def save_image(left_image, disp, epoch):
     b, r = left_image[0], left_image[2]
     left_image[0] = r  # BGR --> RGB
     left_image[2] = b
-    # left_image = torch.from_numpy(left_image.cpu().numpy()[::-1])
-
+    left_image = left_image.cpu().numpy()
+    left_image = (left_image * 255).transpose(1, 2, 0).astype(np.float32)
     disp_img = disp.detach().cpu().numpy()
-    fig = plt.figure(12.84, 3.84)
-    plt.axis('off')  # hide axis
-    plt.imshow(disp_img)
-    plt.colorbar()
-
-    writer.add_figure('image/disp', fig, global_step=epoch)
-    writer.add_image('image/left', left_image, global_step=epoch)
-
+    disp_img = disp2np(disp_img)
+    cv2.imwrite("pic/ep{}_disp.png".format(epoch), disp_img.astype(np.uint8))
+    cv2.imwrite("pic/ep{}_left.png".format(epoch), left_image) 
 
 def train(model, train_loader, optimizer, criterion, step, epoch, ssim):
     '''

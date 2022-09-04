@@ -1,9 +1,9 @@
 import torch
-from models.PSMnet import PSMNet 
+from psmnet.PSMnetPlus import PSMNetPlus
 
 torch.manual_seed(2.0)
-
-model = PSMNet(16).cuda()
+disp_max = 16
+model = PSMNetPlus(disp_max).cuda()
 left = torch.randn(2, 3, 256, 256).cuda()
 right = torch.randn(2, 3, 256, 256).cuda()
 print(left[:, :, 0, 0])

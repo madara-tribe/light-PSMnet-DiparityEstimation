@@ -20,24 +20,38 @@ class DispDataLoder(Dataset):
             self.right_imgs = sorted(glob.glob(cfg.right_dir))
             self.disp = sorted(glob.glob(cfg.disp_dir))
         elif mode == 'val' or mode == 'test':
+            N = 200
             left_imgs = sorted(glob.glob(cfg.val_left_dir))
-            self.left_imgs = left_imgs[:200]
+            self.left_imgs = left_imgs[:N]
             right_imgs = sorted(glob.glob(cfg.val_right_dir))
-            self.right_imgs = right_imgs[:200]
+            self.right_imgs = right_imgs[:N]
             disp = sorted(glob.glob(cfg.val_disp_dir))
-            self.disp = disp[:200]
+            self.disp = disp[:N]
 
 
     def __len__(self):
         return len(self.left_imgs)
+    
+    def preprocess(self, path, disp_is=False):
+        if disp_is:
+            x = cv2.imread(path)[:, :, 0]
+        else:
+            x = cv2.imread(path)
+        x = cv2.resize(x, (640, 320))
+        return x
 
     def __getitem__(self, idx):
         data = {}
         # bgr mode
-        data['left'] = cv2.imread(self.left_imgs[idx])
-        data['right'] = cv2.imread(self.right_imgs[idx])
-        if self.mode != 'test':
+        if self.mode == "train":
+            data['left'] = cv2.imread(self.left_imgs[idx])
+            data['right'] = cv2.imread(self.right_imgs[idx])
             data['disp'] = cv2.imread(self.disp[idx])[:, :, 0]
+        elif self.mode == "val" or self.mode == "test":
+            data['left'] = self.preprocess(self.left_imgs[idx])
+            data['right'] = self.preprocess(self.right_imgs[idx])
+            if self.mode != 'test':
+                data['disp'] = self.preprocess(self.disp[idx], disp_is=True)
 
         if self.transform:
             data = self.transform(data)
@@ -125,30 +139,4 @@ class Pad():
         return sample
 
 
-if __name__ == '__main__':
-    import torchvision.transforms as T
-    import matplotlib.pyplot as plt
-    from torch.utils.data import DataLoader
-    # BGR
-    mean = [0.406, 0.456, 0.485]
-    std = [0.225, 0.224, 0.229]
-
-    train_transform = T.Compose([RandomCrop([256, 512]), ToTensor()])
-    train_dataset = KITTI2015('D:/dataset/data_scene_flow', mode='train', transform=train_transform)
-    train_loader = DataLoader(train_dataset)
-    print(len(train_loader))
-
-    # test_transform = T.Compose([ToTensor()])
-    # test_dataset = KITTI2015('D:/dataset/data_scene_flow', mode='test', transform=test_transform)
-
-    # validate_transform = T.Compose([ToTensor()])
-    # validate_dataset = KITTI2015('D:/dataset/data_scene_flow', mode='validate', transform=validate_transform)
-
-    # datasets = [train_dataset, test_dataset, validate_dataset]
-
-    # for i, dataset in enumerate(datasets):
-    #     a = dataset[0]['right'].numpy().transpose([1, 2, 0])
-    #     plt.subplot(3, 1, i + 1)
-    #     plt.imshow(a)
-    # plt.show()
 
