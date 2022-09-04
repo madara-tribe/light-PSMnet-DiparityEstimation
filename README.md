@@ -31,6 +31,7 @@ SelfAttetion Layer make conv2d layers far less than ordinally one and its accura
 
 
 # Performance
+<b>prediction/GT/input</b>
 
 <img src="https://user-images.githubusercontent.com/48679574/188294584-10c6d3cd-e345-4544-ae4d-b0b2438aa43c.jpeg" width="800px">
 
